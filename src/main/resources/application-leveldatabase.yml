@@ -1,0 +1,46 @@
+#水平分库分表
+spring:
+  shardingsphere:
+    datasource:
+      names: coursedb1,coursedb2
+      coursedb1:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://localhost:3316/edu_db_1?serverTimezone=GMT%2B8&characterEncoding=utf-8
+        username: root
+        password: 123456
+      coursedb2:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://localhost:3316/edu_db_2?serverTimezone=GMT%2B8&characterEncoding=utf-8
+        username: root
+        password: 123456
+    sharding:
+      tables:
+        course:
+          database-strategy:
+            inline:
+              sharding-column: user_id
+              algorithm-expression: coursedb$->{user_id % 2+1}
+          actual-data-nodes: coursedb$->{1..2}.course$->{1..2}
+          key-generator:
+            column: id
+            type: SNOWFLAKE
+          table-strategy:
+            inline:
+              sharding-column: id
+              algorithm-expression: course$->{id % 2+1}
+ #公共表
+        dict:
+          key-generator:
+            column: dict_id
+            type: SNOWFLAKE
+      broadcast-tables: dict
+
+    #日志输出
+    props:
+      sql:
+        show: true
+
+  main:
+    allow-bean-definition-overriding: true

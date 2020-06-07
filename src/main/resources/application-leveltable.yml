@@ -1,0 +1,28 @@
+spring:
+  shardingsphere:
+    datasource:
+      names: coursedb
+      coursedb:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://localhost:3316/course_db?serverTimezone=GMT%2B8
+        username: root
+        password: 123456
+    sharding:
+      tables:
+        course:
+          actual-data-nodes: coursedb.course$->{1..2}
+          key-generator:
+            column: id
+            type: SNOWFLAKE
+          table-strategy:
+            inline:
+              sharding-column: id
+              algorithm-expression: course$->{id % 2+1}
+    #日志输出
+    props:
+      sql:
+        show: true
+
+  main:
+    allow-bean-definition-overriding: true
